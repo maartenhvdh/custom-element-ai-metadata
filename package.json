@@ -1,5 +1,5 @@
 {
-  "name": "integration-template-react",
+  "name": "custom-element-ai-metadata",
   "version": "1.0.0",
   "dependencies": {
     "@kontent-ai/management-sdk": "^3.4.0",

@@ -3,9 +3,10 @@ import { ManagementClient } from '@kontent-ai/management-sdk';
 import { trackPromise } from 'react-promise-tracker';
 import LoadingSpinner from './spinner/spinner';
 
-export const ChatSonicApp: FC = () => {
+export const ChatGTPMetadataApp: FC = () => {
   const [config, setConfig] = useState<Config | null>(null);
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [metatadataTitle, setMetatadataTitle] = useState<string | null>(null);
   const [isDisabled, setIsDisabled] = useState(false);
   const [itemName, setItemName] = useState<string | null>(null);
   const [codeName, setItemCodeName] = useState<string | null>(null);
@@ -55,20 +56,10 @@ export const ChatSonicApp: FC = () => {
     CustomElement.observeElementChanges([config.textElementCodename], () => updateWatchedElementValue(config.textElementCodename));
   }, [config, updateWatchedElementValue]);
 
-  const updateValue = (newValue: string) => {
-    CustomElement.setValue(newValue);
-    setElementValue(newValue);
-  };
-
-  const onKeyDown = (e: any) => {
-      if (e.key === 'Enter') {
-          e.preventDefault();
-          updateValue(e.target.value);
-          generateAIContent(e.target.value);
-      };
-    };
 
   const saveContent = async (val: any) => {
+    console.log(val)
+    setMetatadataTitle(val)
     const client = new ManagementClient({
       projectId: projectId as any,
       apiKey: config?.managementApiKey as any
@@ -80,7 +71,7 @@ export const ChatSonicApp: FC = () => {
       .withData((builder) => [
         builder.textElement({
           element: {
-            codename: 'content'
+            codename: '___seo_metadata__title'
           },
           value: val.message
         })
@@ -88,23 +79,23 @@ export const ChatSonicApp: FC = () => {
       .toPromise();
   }
 
-  async function generateAIContent(value: string) {
+  async function generateAIContent() {
+    console.log("watchedElementValue")
+    console.log(watchedElementValue)
     setIsLoading(true);
     const options = {
       method: 'POST',
       headers: {
         accept: 'application/json',
-        'content-type': 'application/json',
-        'X-API-KEY': config?.apiToken as any
+        'content-type': 'application/json'
       },
       body: JSON.stringify({
-        enable_google_results: 'true',
-        enable_memory: false,
-        input_text: value
+        type : 'summary | keywords | thumbnail',
+        input : watchedElementValue
       })
     };
     trackPromise(
-    fetch('https://api.writesonic.com/v2/business/content/chatsonic?engine=premium', options)
+    fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
       .then(response => response.json())
       .then(response => {
         saveContent(response)
@@ -125,22 +116,34 @@ export const ChatSonicApp: FC = () => {
     <>
       <section>
         {isLoading ? <LoadingSpinner /> : null}
-        <textarea value={elementValue} onChange={e => updateValue(e.target.value)} onKeyDown={e => onKeyDown(e)} disabled={isDisabled} tabIndex={0} data-id="root" rows={1} placeholder="" />
-        <button onClick={(e: any) => generateAIContent(elementValue)}>
-          <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 20 20" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
-          </button>
+        <button onClick={(e: any) => generateAIContent()} value="Generate Metadata" />
+        <table>
+  <tr>
+    <th>Summary:</th>
+    <th id="summary">{metatadataTitle}</th>
+  </tr>
+  <tr>
+    <td>Keywords:</td>
+    <td id="keywords"></td>
+  </tr>
+  <tr>
+    <td>Thumbnail</td>
+    <td id="thumbnail"></td>
+  </tr>
+</table>
       </section>
     </>
   );
 };
 
-ChatSonicApp.displayName = 'ChatSonicApp';
+ChatGTPMetadataApp.displayName = 'ChatSonicApp';
 
 type Config = Readonly<{
   // expected custom element's configuration
   textElementCodename: string;
+  metadataTitle: string;
+  metadataDescription: string;
   managementApiKey: string;
-  apiToken: string;
 }>;
 
 // check it is the expected configuration
@@ -148,10 +151,12 @@ const isConfig = (v: unknown): v is Config =>
   isObject(v) &&
   hasProperty(nameOf<Config>('textElementCodename'), v) &&
   typeof v.textElementCodename === 'string' &&
+  hasProperty(nameOf<Config>('metadataTitle'), v) &&
+  typeof v.metadataTitle === 'string' &&
   hasProperty(nameOf<Config>('managementApiKey'), v) &&
   typeof v.managementApiKey === 'string' &&
-  hasProperty(nameOf<Config>('apiToken'), v) &&
-  typeof v.apiToken === 'string';
+  hasProperty(nameOf<Config>('metadataDescription'), v) &&
+  typeof v.metadataDescription === 'string';
 
 const hasProperty = <PropName extends string, Input extends {}>(propName: PropName, v: Input): v is Input & { [key in PropName]: unknown } =>
   v.hasOwnProperty(propName);
