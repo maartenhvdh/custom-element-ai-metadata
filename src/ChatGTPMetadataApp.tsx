@@ -56,6 +56,10 @@ export const ChatGTPMetadataApp: FC = () => {
     CustomElement.observeElementChanges([config.textElementCodename], () => updateWatchedElementValue(config.textElementCodename));
   }, [config, updateWatchedElementValue]);
 
+  const updateValue = (newValue: string) => {
+    CustomElement.setValue(newValue);
+    setElementValue(newValue);
+  };
 
   const saveContent = async (val: any) => {
     console.log(val)
@@ -64,7 +68,7 @@ export const ChatGTPMetadataApp: FC = () => {
       projectId: projectId as any,
       apiKey: config?.managementApiKey as any
     });
-    
+
     await client.upsertLanguageVariant()
       .byItemCodename(codeName as string)
       .byLanguageCodename(variantCodeName as string)
@@ -90,23 +94,23 @@ export const ChatGTPMetadataApp: FC = () => {
         'content-type': 'application/json'
       },
       body: JSON.stringify({
-        type : 'summary | keywords | thumbnail',
-        input : watchedElementValue
+        type: 'summary | keywords | thumbnail',
+        input: watchedElementValue
       })
     };
     trackPromise(
-    fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
-      .then(response => response.json())
-      .then(response => {
-        saveContent(response)
-        setIsLoading(false)
-      })
-      .catch(err => {         
-        setIsLoading(false);
-        console.error(err)
-      })
+      fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
+        .then(response => response.json())
+        .then(response => {
+          saveContent(response)
+          setIsLoading(false)
+        })
+        .catch(err => {
+          setIsLoading(false);
+          console.error(err)
+        })
     );
-  }  
+  }
 
   if (!config || !projectId || elementValue === null || watchedElementValue === null || itemName === null) {
     return null;
@@ -116,21 +120,28 @@ export const ChatGTPMetadataApp: FC = () => {
     <>
       <section>
         {isLoading ? <LoadingSpinner /> : null}
-        <button onClick={(e: any) => generateAIContent()} value="Generate Metadata" />
+        <span className="btn-wrapper">
+          <button
+            className="btn btn--primary"
+            onClick={(e: any) => generateAIContent()}
+          >
+           Generate Metadata
+          </button>
+        </span>
         <table>
-  <tr>
-    <th>Summary:</th>
-    <th id="summary">{metatadataTitle}</th>
-  </tr>
-  <tr>
-    <td>Keywords:</td>
-    <td id="keywords"></td>
-  </tr>
-  <tr>
-    <td>Thumbnail</td>
-    <td id="thumbnail"></td>
-  </tr>
-</table>
+          <tr>
+            <th>Summary:</th>
+            <th id="summary">{metatadataTitle}</th>
+          </tr>
+          <tr>
+            <td>Keywords:</td>
+            <td id="keywords"></td>
+          </tr>
+          <tr>
+            <td>Thumbnail</td>
+            <td id="thumbnail"></td>
+          </tr>
+        </table>
       </section>
     </>
   );

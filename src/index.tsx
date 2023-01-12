@@ -2,7 +2,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { EnsureKontentAsParent } from "./EnsureKontentAsParent";
 import { ChatGTPMetadataApp } from './ChatGTPMetadataApp';
-import "./index.css";
 
 const rootElement = document.getElementById('root');
 
