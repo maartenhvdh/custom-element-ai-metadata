@@ -94,7 +94,7 @@ export const ChatGTPMetadataApp: FC = () => {
       .toPromise();
   }
 
-  function processKeywords(keywords) {
+  function processKeywords(keywords: string) {
 		return keywords.replace("1.","").replace("2.",",").replace("3.",",").replace("4.",",").replace("5.",",").replace("/\n/g","");
 	}	
 
