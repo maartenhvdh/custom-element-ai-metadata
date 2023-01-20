@@ -86,18 +86,13 @@ export const ChatGTPMetadataApp: FC = () => {
   async function generateAIContent() {
     console.log("watchedElementValue")
     console.log(watchedElementValue)
-    var formData=new FormData();
-      formData.append('type', 'summary | keywords | thumbnail');
-      formData.append('input',watchedElementValue as string);
-
     setIsLoading(true);
     const options = {
       method: 'POST',
-      formData: formData,
-      headers: {
-        accept: 'application/json',
-        'content-type': 'application/json'
-      }
+      body: JSON.stringify({
+        type: 'summary | keywords | thumbnail',
+        input: watchedElementValue
+      })
     };
     trackPromise(
       fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
