@@ -68,7 +68,7 @@ export const ChatGTPMetadataApp: FC = () => {
   }, [config, updateWatchedElementValue]);
 
 
-  const saveContent = async (summary: string, keywords: string) => {
+  const saveContent = async (elenement: string, value: string) => {
     const client = new ManagementClient({
       projectId: projectId as any,
       apiKey: config?.managementApiKey as any
@@ -80,15 +80,9 @@ export const ChatGTPMetadataApp: FC = () => {
       .withData((builder) => [
         builder.textElement({
           element: {
-            codename: 'metadata_summary'
+            codename: elenement
           },
-          value: summary
-        }),
-        builder.textElement({
-          element: {
-            codename: 'metadata_keywords'
-          },
-          value: keywords
+          value: value
         })
       ])
       .toPromise();
@@ -99,22 +93,15 @@ export const ChatGTPMetadataApp: FC = () => {
 	}	
 
   function generateAIMetadata() {
-    let summary = ""
-    let keywords = ""
     $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
       .done(function (data) {
-        console.log(data)
-        console.log(JSON.parse(data))
-        console.log(JSON.parse(data).choices[0].text)
-        summary = JSON.parse(data).choices[0].text
+        saveContent("metadata_summary", JSON.parse(data).choices[0].text);
       });
-    $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "keywords", "input": watchedElementValue })
+    
+      $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "keywords", "input": watchedElementValue })
       .done(function (data) {
-        keywords = processKeywords(JSON.parse(data).choices[0].text)
+        saveContent("metadata_keywords", processKeywords(JSON.parse(data).choices[0].text));
       });
-      console.log("summary")
-      console.log(summary)
-    saveContent(summary, keywords);
   }
 
   if (!config || !projectId || elementValue === null || watchedElementValue === null || itemName === null) {
