@@ -1,5 +1,5 @@
 import $ from "jquery"
-import { FC, useCallback, useEffect, useState } from 'react';
+import { FC, useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { ManagementClient } from '@kontent-ai/management-sdk';
 import { trackPromise } from 'react-promise-tracker';
 import LoadingSpinner from './spinner/spinner';
@@ -20,6 +20,15 @@ export const ChatGTPMetadataApp: FC = () => {
     CustomElement.getElementValue(codename, v => typeof v === 'string' && setWatchedElementValue(v));
   }, []);
 
+  const updateSize = useCallback(() => {
+    const newSize = Math.max(document.documentElement.offsetHeight, 100);
+    CustomElement.setHeight(Math.ceil(newSize));
+  }, []);
+
+  useLayoutEffect(() => {
+    updateSize();
+  }, [updateSize]);
+
   useEffect(() => {
     CustomElement.init((element, context) => {
       if (!isConfig(element.config)) {
@@ -34,6 +43,7 @@ export const ChatGTPMetadataApp: FC = () => {
       setVariantCodeName(context.variant.codename);
       setElementValue(element.value ?? '');
       updateWatchedElementValue(element.config.textElementCodename);
+      updateSize()
     });
   }, [updateWatchedElementValue]);
 
@@ -57,13 +67,8 @@ export const ChatGTPMetadataApp: FC = () => {
     CustomElement.observeElementChanges([config.textElementCodename], () => updateWatchedElementValue(config.textElementCodename));
   }, [config, updateWatchedElementValue]);
 
-  const updateValue = (newValue: string) => {
-    CustomElement.setValue(newValue);
-    setElementValue(newValue);
-  };
 
-  const saveContent = async (val: any) => {
-    setMetatadataTitle(val)
+  const saveContent = async (summary: string, keywords: string) => {
     const client = new ManagementClient({
       projectId: projectId as any,
       apiKey: config?.managementApiKey as any
@@ -77,39 +82,35 @@ export const ChatGTPMetadataApp: FC = () => {
           element: {
             codename: 'metadata_summary'
           },
-          value: val.message
+          value: summary
+        }),
+        builder.textElement({
+          element: {
+            codename: 'metadata_keywords'
+          },
+          value: keywords
         })
       ])
       .toPromise();
   }
 
-  function generateAIMetadata() {
-            $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
-					  .done(function( data ) {						
-						console.log(data);
-						saveContent(JSON.parse(data));
-					});	
-  }
+  function processKeywords(keywords) {
+		return keywords.replace("1.","").replace("2.",",").replace("3.",",").replace("4.",",").replace("5.",",").replace("/\n/g","");
+	}	
 
-  async function generateAIContent() {
-    setIsLoading(true);
-    const options = {
-      method: 'POST',
-      body: JSON.stringify({
-        type: 'summary',
-        input: watchedElementValue
-      })
-    };
-    trackPromise(
-      fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
-        .then(response => {
-          setIsLoading(false)
-        })
-        .catch(err => {
-          setIsLoading(false);
-          console.error(err)
-        })
-    );
+  function generateAIMetadata() {
+    let summary = ""
+    let keywords = ""
+    $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
+      .done(function (data) {
+        summary = JSON.parse(data).choices[0].text
+      });
+    $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "keywords", "input": watchedElementValue })
+      .done(function (data) {
+        keywords = processKeywords(JSON.parse(data).choices[0].text)
+      });
+
+    saveContent(summary, keywords);
   }
 
   if (!config || !projectId || elementValue === null || watchedElementValue === null || itemName === null) {
@@ -125,23 +126,9 @@ export const ChatGTPMetadataApp: FC = () => {
             className="btn btn--primary"
             onClick={(e: any) => generateAIMetadata()}
           >
-           Generate Metadata
+            Generate Metadata
           </button>
         </span>
-        <table>
-          <tr>
-            <th>Summary:</th>
-            <th id="summary">{metatadataTitle}</th>
-          </tr>
-          <tr>
-            <td>Keywords:</td>
-            <td id="keywords"></td>
-          </tr>
-          <tr>
-            <td>Thumbnail</td>
-            <td id="thumbnail"></td>
-          </tr>
-        </table>
       </section>
     </>
   );
