@@ -93,14 +93,14 @@ export const ChatGTPMetadataApp: FC = () => {
 	}	
 
   function generateAIMetadata() {
-    $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
+    $.post(config?.apiServiceUrl as any, { "type": "summary", "input": watchedElementValue })
       .done(function (data) {
-        saveContent("metadata_summary", JSON.parse(data).choices[0].text);
+        saveContent(config?.metadataDescription as any, JSON.parse(data).choices[0].text);
       });
     
-      $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "keywords", "input": watchedElementValue })
+      $.post(config?.apiServiceUrl as any, { "type": "keywords", "input": watchedElementValue })
       .done(function (data) {
-        saveContent("metadata_keywords", processKeywords(JSON.parse(data).choices[0].text));
+        saveContent(config?.metadataKeywords as any, processKeywords(JSON.parse(data).choices[0].text));
       });
   }
 
@@ -130,9 +130,10 @@ ChatGTPMetadataApp.displayName = 'ChatSonicApp';
 type Config = Readonly<{
   // expected custom element's configuration
   textElementCodename: string;
-  metadataTitle: string;
+  metadataKeywords: string;
   metadataDescription: string;
   managementApiKey: string;
+  apiServiceUrl: string;
 }>;
 
 // check it is the expected configuration
@@ -140,12 +141,14 @@ const isConfig = (v: unknown): v is Config =>
   isObject(v) &&
   hasProperty(nameOf<Config>('textElementCodename'), v) &&
   typeof v.textElementCodename === 'string' &&
-  hasProperty(nameOf<Config>('metadataTitle'), v) &&
-  typeof v.metadataTitle === 'string' &&
+  hasProperty(nameOf<Config>('metadataKeywords'), v) &&
+  typeof v.metadataKeywords === 'string' &&
   hasProperty(nameOf<Config>('managementApiKey'), v) &&
   typeof v.managementApiKey === 'string' &&
   hasProperty(nameOf<Config>('metadataDescription'), v) &&
-  typeof v.metadataDescription === 'string';
+  typeof v.metadataDescription === 'string' &&
+  hasProperty(nameOf<Config>('apiServiceUrl'), v) &&
+  typeof v.apiServiceUrl === 'string';
 
 const hasProperty = <PropName extends string, Input extends {}>(propName: PropName, v: Input): v is Input & { [key in PropName]: unknown } =>
   v.hasOwnProperty(propName);
