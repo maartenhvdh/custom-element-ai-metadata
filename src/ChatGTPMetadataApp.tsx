@@ -82,6 +82,14 @@ export const ChatGTPMetadataApp: FC = () => {
       .toPromise();
   }
 
+  function generateAIMetadata() {
+            $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
+					  .done(function( data ) {						
+						console.log(data);
+						saveContent(JSON.parse(data));
+					});	
+  }
+
   async function generateAIContent() {
     setIsLoading(true);
     const options = {
@@ -94,8 +102,6 @@ export const ChatGTPMetadataApp: FC = () => {
     trackPromise(
       fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
         .then(response => {
-          console.log(response)
-          saveContent(response)
           setIsLoading(false)
         })
         .catch(err => {
@@ -116,7 +122,7 @@ export const ChatGTPMetadataApp: FC = () => {
         <span className="btn-wrapper">
           <button
             className="btn btn--primary"
-            onClick={(e: any) => generateAIContent()}
+            onClick={(e: any) => generateAIMetadata()}
           >
            Generate Metadata
           </button>
