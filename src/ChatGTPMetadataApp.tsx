@@ -62,7 +62,6 @@ export const ChatGTPMetadataApp: FC = () => {
   };
 
   const saveContent = async (val: any) => {
-    console.log(val)
     setMetatadataTitle(val)
     const client = new ManagementClient({
       projectId: projectId as any,
@@ -75,7 +74,7 @@ export const ChatGTPMetadataApp: FC = () => {
       .withData((builder) => [
         builder.textElement({
           element: {
-            codename: '___seo_metadata__title'
+            codename: 'metadata_summary'
           },
           value: val.message
         })
@@ -88,7 +87,7 @@ export const ChatGTPMetadataApp: FC = () => {
     const options = {
       method: 'POST',
       body: JSON.stringify({
-        type: 'summary | keywords | thumbnail',
+        type: 'summary',
         input: watchedElementValue
       })
     };
