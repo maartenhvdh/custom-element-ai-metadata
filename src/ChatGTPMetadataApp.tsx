@@ -1,3 +1,4 @@
+import $ from "jquery"
 import { FC, useCallback, useEffect, useState } from 'react';
 import { ManagementClient } from '@kontent-ai/management-sdk';
 import { trackPromise } from 'react-promise-tracker';
