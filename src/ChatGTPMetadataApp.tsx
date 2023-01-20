@@ -112,7 +112,8 @@ export const ChatGTPMetadataApp: FC = () => {
       .done(function (data) {
         keywords = processKeywords(JSON.parse(data).choices[0].text)
       });
-
+      console.log("summary")
+      console.log(summary)
     saveContent(summary, keywords);
   }
 
