@@ -103,6 +103,9 @@ export const ChatGTPMetadataApp: FC = () => {
     let keywords = ""
     $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "summary", "input": watchedElementValue })
       .done(function (data) {
+        console.log(data)
+        console.log(JSON.parse(data))
+        console.log(JSON.parse(data).choices[0].text)
         summary = JSON.parse(data).choices[0].text
       });
     $.post('https://kontentapp.azurewebsites.net/elements/openai/', { "type": "keywords", "input": watchedElementValue })
