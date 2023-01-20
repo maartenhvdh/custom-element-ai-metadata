@@ -84,8 +84,6 @@ export const ChatGTPMetadataApp: FC = () => {
   }
 
   async function generateAIContent() {
-    console.log("watchedElementValue")
-    console.log(watchedElementValue)
     setIsLoading(true);
     const options = {
       method: 'POST',
@@ -96,8 +94,8 @@ export const ChatGTPMetadataApp: FC = () => {
     };
     trackPromise(
       fetch('https://kontentapp.azurewebsites.net/elements/openai/', options)
-        .then(response => response.json())
         .then(response => {
+          console.log(response)
           saveContent(response)
           setIsLoading(false)
         })
